@@ -1,25 +1,43 @@
+from tkinter import filedialog, messagebox
 from yt_dlp import YoutubeDL
-from tkinter import filedialog
 
 def download_video(url):
     """
-    Downloads a YouTube video and saves it in the user-specified folder.
+    Fetches video info, prompts for confirmation, and downloads the video if confirmed.
     """
     if not url:
         return "⚠️ Please enter a valid YouTube URL."
     
-    output_path = filedialog.askdirectory(title="Select Download Folder")
-    if not output_path:
-        return "⚠️ No folder selected."
-    
-    ydl_opts = {
-        'outtmpl': f'{output_path}/%(title)s.%(ext)s',
-        'format': 'bestvideo+bestaudio/best',
-        'merge_output_format': 'mp4'
-    }
-    
     try:
-        with YoutubeDL(ydl_opts) as ydl:
+        # Fetch video information
+        ydl_opts_info = {'quiet': True}
+        with YoutubeDL(ydl_opts_info) as ydl:
+            info = ydl.extract_info(url, download=False)
+        
+        # Get video details
+        title = info.get('title', 'Unknown Title')
+        resolution = info.get('format_note', 'Unknown Resolution')
+        
+        # Ask for confirmation
+        confirm = messagebox.askyesno(
+            "Confirm Download",
+            f"Video: {title}\nResolution: {resolution}\n\nDo you want to download this video?"
+        )
+        if not confirm:
+            return "Download canceled."
+        
+        # Ask for download folder
+        output_path = filedialog.askdirectory(title="Select Download Folder")
+        if not output_path:
+            return "⚠️ No folder selected."
+        
+        # Download the video
+        ydl_opts_download = {
+            'outtmpl': f'{output_path}/%(title)s.%(ext)s',
+            'format': 'bestvideo+bestaudio/best',
+            'merge_output_format': 'mp4'
+        }
+        with YoutubeDL(ydl_opts_download) as ydl:
             ydl.download([url])
         return f"✅ Video downloaded to: {output_path}"
     except Exception as e:
