@@ -3,13 +3,13 @@ from yt_dlp import YoutubeDL
 
 def download_video(url):
     """
-    Fetches video info, prompts for confirmation, and downloads the video if confirmed.
+    Fetches available formats, prompts the user to select one, and downloads the video.
     """
     if not url:
         return "⚠️ Please enter a valid YouTube URL."
-    
+
     try:
-        # Fetch video information
+        # Fetch video information and formats
         ydl_opts_info = {'quiet': True}
         with YoutubeDL(ydl_opts_info) as ydl:
             info = ydl.extract_info(url, download=False)
@@ -25,12 +25,12 @@ def download_video(url):
         )
         if not confirm:
             return "Download canceled."
-        
+
         # Ask for download folder
         output_path = filedialog.askdirectory(title="Select Download Folder")
         if not output_path:
             return "⚠️ No folder selected."
-        
+
         # Download the video
         ydl_opts_download = {
             'outtmpl': f'{output_path}/%(title)s.%(ext)s',

@@ -16,6 +16,14 @@ def handle_download():
     result = download_video(input_url.get())
     label.config(text=result)
 
+def handle_example_download():
+    """
+    Downloads a video using a default example URL.
+    """
+    default_url = "https://youtu.be/wpJnigMKFmQ?feature=shared"  # Replace with your example URL
+    result = download_video(default_url)
+    label.config(text=result)
+
 # Create the Tkinter app window
 app = tk.Tk()
 app.title("YouTube Download and Watermark Tool")
@@ -24,6 +32,9 @@ app.geometry("500x300")
 # Add a label
 label = tk.Label(app, text="YouTube Video Downloader and Watermarker", wraplength=450)
 label.pack(pady=20)
+
+example_button = tk.Button(app, text="Download Example", command=handle_example_download)
+example_button.pack(pady=10)
 
 # Add input field for YouTube URL
 input_label = tk.Label(app, text="YouTube URL:")
