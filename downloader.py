@@ -1,41 +1,40 @@
-from tkinter import filedialog, messagebox
 from yt_dlp import YoutubeDL
 
-def download_video(url):
+def fetch_formats(url):
     """
-    Fetches available formats, prompts the user to select one, and downloads the video.
+    Fetches available formats for the given YouTube URL and returns a list of tuples.
+    Each tuple contains the format ID and description.
     """
-    if not url:
-        return "⚠️ Please enter a valid YouTube URL."
-
     try:
-        # Fetch video information and formats
         ydl_opts_info = {'quiet': True}
         with YoutubeDL(ydl_opts_info) as ydl:
             info = ydl.extract_info(url, download=False)
         
-        # Get video details
-        title = info.get('title', 'Unknown Title')
-        resolution = info.get('format_note', 'Unknown Resolution')
-        
-        # Ask for confirmation
-        confirm = messagebox.askyesno(
-            "Confirm Download",
-            f"Video: {title}\nResolution: {resolution}\n\nDo you want to download this video?"
-        )
-        if not confirm:
-            return "Download canceled."
+        formats = info.get('formats', [])
+        format_options = [
+            (fmt['format_id'], f"{fmt['format_note']} - {fmt['ext']} ({fmt.get('filesize', 'Unknown size')} bytes)")
+            for fmt in formats if fmt.get('format_note') and fmt.get('filesize') is not None
+        ]
+        return format_options
+    except Exception as e:
+        return f"❌ Error fetching formats: {e}"
 
-        # Ask for download folder
-        output_path = filedialog.askdirectory(title="Select Download Folder")
-        if not output_path:
-            return "⚠️ No folder selected."
+def download_video(url, format_id, output_path):
+    """
+    Downloads the selected format for the given YouTube URL.
+    """
+    if not url:
+        return "⚠️ Please enter a valid YouTube URL."
+    if not format_id:
+        return "⚠️ Please select a format."
+    if not output_path:
+        return "⚠️ Please select an output folder."
 
-        # Download the video
+    try:
+        # Download the selected format
         ydl_opts_download = {
             'outtmpl': f'{output_path}/%(title)s.%(ext)s',
-            'format': 'bestvideo+bestaudio/best',
-            'merge_output_format': 'mp4'
+            'format': format_id
         }
         with YoutubeDL(ydl_opts_download) as ydl:
             ydl.download([url])
