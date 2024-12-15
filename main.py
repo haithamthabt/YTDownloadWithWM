@@ -53,13 +53,15 @@ def fetch_best_formats():
     ]
     format_ids = [f['format_id'] for f in filtered_video_formats]
 
-    # Map descriptions to format IDs
-    format_id_map = {}
-    for f in filtered_video_formats:
-        description = f"{f['format_note']},: ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB"
-        format_id_map[description] = f['format_id']
+    # Streamlined description-to-format mapping
+    selected_format = tk.StringVar(value=None)
 
-    selected_format = tk.StringVar(value=list(format_id_map.keys())[0])  # Default to the first format
+    format_id_map = {
+        f"{f['format_note']} => ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB": f['format_id']
+        for f in filtered_video_formats
+    }
+
+    selected_format.set(list(format_id_map.keys())[0])  # Default to the first format
     dropdown = tk.OptionMenu(format_frame, selected_format, *format_id_map.keys())
     dropdown.pack()
 
