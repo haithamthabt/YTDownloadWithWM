@@ -79,7 +79,7 @@ def handle_download():
         label.config(text="⚠️ Best audio format not found. Fetch formats again.")
         return
 
-    video_format_id = selected_format.get().split(', ')[0].split(': ')[1]  # Get the selected video format
+    video_format_id = selected_format.get().split(', ')[0].split(': ')[1]  # Extract video format ID
     audio_format_id = best_audio['format_id']  # Best audio format
 
     # Ask user to select output folder
@@ -88,9 +88,10 @@ def handle_download():
         label.config(text="⚠️ No folder selected.")
         return
 
-    # Download the selected video and audio
+    # Call the updated download function with metadata
     result = download_video(url, video_format_id, audio_format_id, output_path)
     label.config(text=result)
+
 
 
 # Create the Tkinter app window

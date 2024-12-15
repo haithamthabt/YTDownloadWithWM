@@ -1,4 +1,5 @@
 from yt_dlp import YoutubeDL
+import subprocess
 
 def extract_video_info(video_url):
     """
@@ -59,15 +60,47 @@ def filter_matching_video_formats(formats, best_video):
 
 def download_video(video_url, video_format_id, audio_format_id, output_path):
     """
-    Downloads the selected video and best audio format.
+    Downloads the selected video and audio formats and injects bitrate metadata.
     """
     try:
+        # Extract video and audio bitrates
+        video_bitrate = None
+        audio_bitrate = None
+
+        with YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(video_url, download=False)
+            video_format = next(f for f in info['formats'] if f['format_id'] == video_format_id)
+            audio_format = next(f for f in info['formats'] if f['format_id'] == audio_format_id)
+            video_bitrate = video_format.get('tbr', 0)  # Total video bitrate (kbps)
+            audio_bitrate = audio_format.get('abr', 0)  # Audio bitrate (kbps)
+
+        print(f"Extracted Video Bitrate: {video_bitrate} kbps")
+        print(f"Extracted Audio Bitrate: {audio_bitrate} kbps")
+
+        # yt-dlp options
+        output_file = f"{output_path}/output.mkv"
         ydl_opts = {
             'format': f"{video_format_id}+{audio_format_id}",
-            'outtmpl': f'{output_path}/%(title)s.%(ext)s',
+            'outtmpl': output_file,
+            'merge_output_format': 'mkv',
+            'quiet': False,
+            'postprocessor_args': [
+                '-metadata', f'VIDEO_BITRATE={video_bitrate} kbps',
+                '-metadata', f'AUDIO_BITRATE={audio_bitrate} kbps',
+                '-metadata:s:a', 'title='  # Remove the Title metadata for the audio stream
+            ]
         }
-        with YoutubeDL(ydl_opts) as ydl_download:
-            ydl_download.download([video_url])
-        return "✅ Download complete!"
+
+        # Start the download
+        with YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
+
+        return f"✅ Video downloaded with bitrate metadata: {output_file}"
     except Exception as e:
         return f"❌ Error: {e}"
+
+
+
+
+
+
