@@ -5,9 +5,6 @@ from downloader import extract_video_info, get_best_audio_format, get_best_video
 
 # Global variables
 selected_format = None  # To store the selected video format
-best_audio = None  # To store the best audio format
-filtered_video_formats = []  # To store matching video formats
-
 
 def handle_watermark():
     """
@@ -56,9 +53,19 @@ def fetch_best_formats():
     ]
     format_ids = [f['format_id'] for f in filtered_video_formats]
 
-    selected_format = tk.StringVar(value=format_ids[0])  # Default to the first format
-    dropdown = tk.OptionMenu(format_frame, selected_format, *format_descriptions)
+    # Map descriptions to format IDs
+    format_id_map = {}
+    for f in filtered_video_formats:
+        description = f"ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB"
+        format_id_map[description] = f['format_id']
+
+    selected_format = tk.StringVar(value=list(format_id_map.keys())[0])  # Default to the first format
+    dropdown = tk.OptionMenu(format_frame, selected_format, *format_id_map.keys())
     dropdown.pack()
+
+    # Attach the format ID map to the dropdown for later retrieval
+    dropdown.format_id_map = format_id_map
+
 
     label.config(text="Matching video formats fetched! Select one and click 'Download Video'.")
 
@@ -79,7 +86,13 @@ def handle_download():
         label.config(text="⚠️ Best audio format not found. Fetch formats again.")
         return
 
-    video_format_id = selected_format.get().split(', ')[0].split(': ')[1]  # Extract video format ID
+
+    # Retrieve the selected video format ID from the dropdown
+
+    dropdown = format_frame.winfo_children()[0]  # Get the dropdown widget
+    selected_description = selected_format.get()
+    video_format_id = dropdown.format_id_map[selected_description]  # Map description to format ID
+
     audio_format_id = best_audio['format_id']  # Best audio format
 
     # Ask user to select output folder
