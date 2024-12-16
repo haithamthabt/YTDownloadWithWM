@@ -3,8 +3,10 @@ from tkinter import filedialog, ttk
 import threading
 from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video
 
-# Global variables
+# Global variables for storing video format information
 selected_format = None  # To store the selected video format
+best_audio = None  # To store the best audio format
+filtered_video_formats = None  # To store filtered video formats
 
 def fetch_best_formats():
     """
@@ -39,7 +41,6 @@ def fetch_best_formats():
         widget.destroy()
 
     # Initialize selected_format if not already set
-    global selected_format
     if selected_format is None:
         selected_format = tk.StringVar()
 
@@ -61,7 +62,6 @@ def handle_download():
     """
     Starts the download process in a separate thread to keep the GUI responsive.
     """
-    global best_audio, filtered_video_formats
     url = input_url.get()
     if not url:
         label.config(text="⚠️ Please enter a valid YouTube URL.")
@@ -111,7 +111,7 @@ app = tk.Tk()
 app.title("YouTube Download and Watermark Tool")
 app.geometry("500x600")
 
-# Add a label
+# Add a label for app title and status messages
 label = tk.Label(app, text="YouTube Video Downloader and Watermarker", wraplength=450)
 label.pack(pady=20)
 
@@ -129,7 +129,7 @@ fetch_best_formats_button.pack(pady=10)
 download_button = tk.Button(app, text="Download YouTube Video", command=handle_download)
 download_button.pack(pady=10)
 
-# Variable to store watermark check state
+# Add watermark checkbox
 watermark_enabled = tk.BooleanVar(value=True)  # Checked by default
 watermark_checkbutton = tk.Checkbutton(app, text="Add Watermark", variable=watermark_enabled)
 watermark_checkbutton.pack(pady=5)
@@ -143,7 +143,7 @@ progress_bar = ttk.Progressbar(app, orient="horizontal", length=400, mode="deter
 progress_bar.pack(pady=10)
 
 # Add a copyright label
-copyright_label = tk.Label(app, text="© 2024 Limitless Media", font=("Arial", 10), fg="gray")
+copyright_label = tk.Label(app, text=" 2024 Limitless Media", font=("Arial", 10), fg="gray")
 copyright_label.pack(side=tk.BOTTOM, pady=5)
 
 # Run the Tkinter main loop

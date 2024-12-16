@@ -3,10 +3,9 @@ import subprocess
 import os
 from watermark import add_moving_watermark
 
-
-
 #testing url https://youtu.be/wpJnigMKFmQ?feature=shared
 #another url longer https://youtu.be/CdTtTCK2EPU?feature=shared
+
 def extract_video_info(video_url):
     """
     Extracts video information and formats using yt_dlp.
@@ -138,4 +137,3 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
 
     except Exception as e:
         return f"❌ Error: {e}"
-
