@@ -1,12 +1,16 @@
 import tkinter as tk
 from tkinter import filedialog, ttk
 import threading
-from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video
+from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video, process_url
+import os
+import time
 
 # Global variables for storing video format information
 selected_format = None  # To store the selected video format
 best_audio = None  # To store the best audio format
 filtered_video_formats = None  # To store filtered video formats
+format_vars = {}  # To store format variables for playlist videos
+watermark_vars = {}  # To store watermark variables for playlist videos
 
 def fetch_best_formats():
     """
@@ -106,45 +110,254 @@ def handle_download():
     # Start download in a new thread
     threading.Thread(target=threaded_download, daemon=True).start()
 
+def download_playlist_videos():
+    """
+    Download all videos in the playlist with their selected formats and watermark settings
+    """
+    print("Starting playlist download...")
+    print(f"Format vars: {format_vars}")
+    print(f"Watermark vars: {watermark_vars}")
+    
+    def threaded_playlist_download():
+        total_videos = len(format_vars)
+        print(f"Total videos to download: {total_videos}")
+        
+        # Get download path
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        
+        # Create a playlist directory with timestamp
+        playlist_dir = os.path.join(download_path, f"playlist_{int(time.time())}")
+        os.makedirs(playlist_dir, exist_ok=True)
+        
+        for i, (video_url, format_var) in enumerate(format_vars.items(), 1):
+            selected_format_str = format_var.get()
+            # Extract format ID from the string (format is "format_note => ID: format_id, Res: resolution, FPS: fps, Size: filesize MB")
+            format_id = selected_format_str.split("ID: ")[1].split(",")[0].strip() if "ID: " in selected_format_str else selected_format_str
+            
+            watermark = watermark_vars[video_url].get() if video_url in watermark_vars else False
+            print(f"Downloading video {i}: {video_url}")
+            print(f"Selected format ID: {format_id}")
+            print(f"Watermark: {watermark}")
+            
+            # Update label to show which video is being downloaded
+            label.config(text=f"Downloading video {i} of {total_videos}...")
+            
+            try:
+                # Use existing download function's core logic
+                download_video(video_url, format_id, watermark, playlist_dir)
+                
+                # Update progress for this video
+                progress_bar["value"] = (i / total_videos) * 100
+                root.update_idletasks()
+                
+            except Exception as e:
+                print(f"Error downloading video {i}: {str(e)}")
+                label.config(text=f"Error downloading video {i}: {str(e)}")
+                continue
+        
+        label.config(text="All videos downloaded!")
+        progress_bar["value"] = 0
+    
+    # Reset progress bar
+    progress_bar["value"] = 0
+    
+    # Start download in a new thread
+    threading.Thread(target=threaded_playlist_download, daemon=True).start()
+
+def show_playlist_window(playlist_info):
+    """
+    Show a new window with playlist information and format selection
+    """
+    print("Playlist info received:", playlist_info)  # Debug print
+    print("Number of videos:", len(playlist_info.get('videos', [])))  # Debug print
+    
+    global format_vars, watermark_vars
+    # Clear previous variables
+    format_vars.clear()
+    watermark_vars.clear()
+    
+    playlist_window = tk.Toplevel(root)
+    playlist_window.title("Playlist Videos")
+    playlist_window.configure(bg=root.cget('bg'))  # Match main window background
+    playlist_window.geometry("1000x600")  # Made window wider
+    
+    # Configure the switch style for checkbuttons
+    style = ttk.Style()
+    style.configure('Switch.TCheckbutton',
+                   background=root.cget('bg'),
+                   foreground='white')
+    
+    # Create main frame with scrollbar
+    main_frame = ttk.Frame(playlist_window)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    
+    # Add canvas and scrollbar
+    canvas = tk.Canvas(main_frame)
+    scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+    scrollable_frame = ttk.Frame(canvas)
+    
+    scrollable_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+    )
+    
+    canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+    canvas.configure(yscrollcommand=scrollbar.set)
+    
+    # Pack scrollbar components
+    scrollbar.pack(side="right", fill="y")
+    canvas.pack(side="left", fill="both", expand=True)
+    
+    # Add header
+    header = ttk.Label(scrollable_frame, text=f"Total Videos: {len(playlist_info['videos'])}", font=('Helvetica', 12, 'bold'))
+    header.pack(pady=10)
+    
+    # Dictionary to store format variables for each video
+    format_vars = {}
+    watermark_vars = {}  # Add dictionary for watermark variables
+    
+    # Add video entries
+    for i, video in enumerate(playlist_info['videos'], 1):
+        video_frame = ttk.LabelFrame(scrollable_frame, text=f"Video {i}")
+        video_frame.pack(fill="x", padx=5, pady=5, ipadx=5, ipady=5)
+        
+        # Video title
+        title_label = ttk.Label(video_frame, text=f"Title: {video['title']}", wraplength=700)
+        title_label.pack(anchor="w")
+        
+        if video['status'] == 'ready' and video['formats']:
+            # Format selection
+            format_frame = ttk.Frame(video_frame)
+            format_frame.pack(fill="x", pady=5)
+            
+            format_label = ttk.Label(format_frame, text="Format:")
+            format_label.pack(side="left", padx=5)
+            
+            # Create format selection dropdown
+            format_var = tk.StringVar()
+            format_vars[video['url']] = format_var  # Store the format variable
+            format_combo = ttk.Combobox(format_frame, textvariable=format_var, state="readonly", width=80)  # Made combobox wider
+            
+            # Get best video format first to determine properties
+            best_video = get_best_video_format(video['formats'])
+            best_audio = get_best_audio_format(video['formats'])
+            
+            if best_video and best_audio:
+                # Get matching video formats based on best video properties
+                matching_formats = filter_matching_video_formats(video['formats'], best_video)
+                
+                # Format the combo box values
+                format_combo['values'] = [
+                    f"{fmt['format_note']} => ID: {fmt['format_id']}, Res: {fmt.get('resolution', 'N/A')}, FPS: {fmt.get('fps', 'N/A')}, Size: {fmt.get('filesize', 0) / 1024 / 1024:.2f} MB"
+                    for fmt in matching_formats
+                ]
+                
+                # Set default selection to first format
+                if format_combo['values']:
+                    format_combo.set(format_combo['values'][0])
+            else:
+                format_combo['values'] = ["No suitable formats found"]
+                
+            format_combo.pack(side="left", padx=5)
+            
+            # Add watermark checkbox
+            watermark_var = tk.BooleanVar(value=watermark_enabled.get())
+            watermark_vars[video['url']] = watermark_var  # Store the watermark variable
+            watermark_check = ttk.Checkbutton(format_frame, text="Add Watermark", variable=watermark_var, style='Switch.TCheckbutton')
+            watermark_check.pack(side="left", padx=20)
+        else:
+            error_label = ttk.Label(video_frame, text=f"Status: {video['status']}", foreground="red")
+            error_label.pack(anchor="w")
+    
+    # Download button
+    download_button = tk.Button(scrollable_frame, text="Download Selected Videos", command=download_playlist_videos)
+    download_button.pack(pady=10)
+
+def check_url():
+    url = input_url.get()
+    if not url:
+        return
+    
+    try:
+        # Clear previous format selection
+        for widget in format_frame.winfo_children():
+            widget.destroy()
+        label.config(text="Processing URL...")
+        
+        # Process URL (could be video or playlist)
+        result = process_url(url, "downloads", watermark=watermark_enabled.get())  # Pass watermark state
+        
+        if result['is_playlist']:
+            # Show playlist window
+            show_playlist_window(result)
+        else:
+            # Single video - use existing format display
+            video = result['videos'][0]
+            if video['status'] == 'ready' and video['formats']:
+                # Initialize selected_format if not already set
+                global selected_format
+                if selected_format is None:
+                    selected_format = tk.StringVar()
+
+                # Populate dropdown with matching video formats
+                format_id_map = {
+                    f"{f['format_note']} => ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB": f['format_id']
+                    for f in video['formats']
+                }
+
+                selected_format.set(list(format_id_map.keys())[0])  # Default to the first format
+                dropdown = tk.OptionMenu(format_frame, selected_format, *format_id_map.keys())
+                dropdown.pack()
+
+                # Attach the format ID map to the dropdown for later retrieval
+                dropdown.format_id_map = format_id_map
+                label.config(text="Matching video formats fetched! Select one and click 'Download Video'.")
+            else:
+                label.config(text=f"Error: {video['status']}")
+    
+    except Exception as e:
+        label.config(text=f"Error: {str(e)}")
+
 # Create the Tkinter app window
-app = tk.Tk()
-app.title("YouTube Download and Watermark Tool")
-app.geometry("500x600")
+root = tk.Tk()
+root.title("YouTube Download and Watermark Tool")
+root.geometry("500x600")
 
 # Add a label for app title and status messages
-label = tk.Label(app, text="YouTube Video Downloader and Watermarker", wraplength=450)
+label = tk.Label(root, text="YouTube Video Downloader and Watermarker", wraplength=450)
 label.pack(pady=20)
 
 # Add input field for YouTube URL
-input_label = tk.Label(app, text="YouTube URL:")
+input_label = tk.Label(root, text="YouTube URL:")
 input_label.pack(pady=5)
 
-input_url = tk.Entry(app, width=50)
+input_url = tk.Entry(root, width=50)
+input_url.insert(0, "https://www.youtube.com/playlist?list=PLHc88y3ww4WCWc4kcXdQkEyo7zoGj7_uh")
 input_url.pack(pady=5)
 
 # Add buttons for fetching formats and downloading
-fetch_best_formats_button = tk.Button(app, text="Fetch Best Video Formats", command=fetch_best_formats)
+fetch_best_formats_button = tk.Button(root, text="Fetch Best Video Formats", command=check_url)
 fetch_best_formats_button.pack(pady=10)
 
-download_button = tk.Button(app, text="Download YouTube Video", command=handle_download)
+download_button = tk.Button(root, text="Download YouTube Video", command=handle_download)
 download_button.pack(pady=10)
 
 # Add watermark checkbox
 watermark_enabled = tk.BooleanVar(value=True)  # Checked by default
-watermark_checkbutton = tk.Checkbutton(app, text="Add Watermark", variable=watermark_enabled)
-watermark_checkbutton.pack(pady=5)
+watermark_checkbox = tk.Checkbutton(root, text="Add Watermark", variable=watermark_enabled)
+watermark_checkbox.pack(pady=5)
 
 # Add a frame for the format dropdown
-format_frame = tk.Frame(app)
+format_frame = tk.Frame(root)
 format_frame.pack(pady=10)
 
 # Add a progress bar
-progress_bar = ttk.Progressbar(app, orient="horizontal", length=400, mode="determinate")
+progress_bar = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
 progress_bar.pack(pady=10)
 
 # Add a copyright label
-copyright_label = tk.Label(app, text=" 2024 Limitless Media", font=("Arial", 10), fg="gray")
+copyright_label = tk.Label(root, text=" 2024 Limitless Media", font=("Arial", 10), fg="gray")
 copyright_label.pack(side=tk.BOTTOM, pady=5)
 
 # Run the Tkinter main loop
-app.mainloop()
+root.mainloop()

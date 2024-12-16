@@ -161,7 +161,7 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - Progress visualization
 
 2. **Functionality**
-   - Playlist support
+   - Playlist support (in progress)
    - Batch processing
    - Download queue
 
@@ -169,3 +169,37 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - Format presets
    - Error handling
    - Logging system
+
+## 6. Playlist Implementation Details
+
+### 6.1 Detecting Playlists
+- Check if URL is a playlist
+- Extract all video URLs from playlist
+
+### 6.2 Playlist GUI
+- Create scrollable window showing:
+  - Video titles
+  - Format selection dropdown (matching single video quality)
+  - Watermark toggle (synced with main window)
+
+### 6.3 Downloading Playlists
+- Download each video with selected format
+- Apply watermark based on individual toggles
+- Show progress for overall playlist
+
+### 6.4 Format Selection for Playlists
+- Uses yt-dlp to get available formats
+- Filters to show best quality options:
+  1. Highest resolution
+  2. Best FPS
+  3. Preferred codec (VP9 > AVC1)
+- Shows detailed format info:
+  - Resolution
+  - FPS
+  - File size
+  - Format ID
+
+### 6.5 Watermarking for Playlists
+- Uses OpenCV for video processing
+- Adds moving watermark text
+- Configurable text and movement

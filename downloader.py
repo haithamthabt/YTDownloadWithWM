@@ -1,10 +1,14 @@
 from yt_dlp import YoutubeDL
 import subprocess
 import os
+import re
 from watermark import add_moving_watermark
+import time
 
 #testing url https://youtu.be/wpJnigMKFmQ?feature=shared
 #another url longer https://youtu.be/CdTtTCK2EPU?feature=shared
+# playlist url https://www.youtube.com/playlist?list=PLEIVUdJziotqs7DrYItyA-xhI07-1AJFx
+# or https://www.youtube.com/playlist?list=PLHc88y3ww4WCWc4kcXdQkEyo7zoGj7_uh
 
 def extract_video_info(video_url):
     """
@@ -67,6 +71,76 @@ def filter_matching_video_formats(formats, best_video):
            f.get('filesize') is not None  # Ensure file size exists
     ]
     return matching_formats
+
+def is_playlist(url):
+    """
+    Determine if the given URL is a YouTube playlist.
+    
+    Args:
+        url (str): YouTube URL to check
+        
+    Returns:
+        bool: True if URL is a playlist, False otherwise
+    """
+    # Check for common playlist URL patterns
+    playlist_patterns = [
+        r'youtube\.com/playlist\?list=',           # Standard playlist URL
+        r'youtube\.com/watch\?.*&list=',           # Video within playlist
+        r'youtu\.be/.*[?&]list=',                  # Shortened URL with playlist
+    ]
+    
+    # Convert URL to lowercase for case-insensitive matching
+    url_lower = url.lower()
+    
+    # Check if URL matches any playlist pattern
+    return any(re.search(pattern, url_lower) for pattern in playlist_patterns)
+
+def get_playlist_urls(playlist_url):
+    """
+    Extract URLs of all videos in a playlist.
+    
+    Args:
+        playlist_url (str): URL of the YouTube playlist
+        
+    Returns:
+        list: List of video URLs in the playlist
+    """
+    ydl_opts = {
+        'extract_flat': True,  # Don't download videos, just get metadata
+        'quiet': True,
+        'no_warnings': True,
+        'ignoreerrors': True,  # Skip unavailable videos
+    }
+    
+    try:
+        with YoutubeDL(ydl_opts) as ydl:
+            playlist_info = ydl.extract_info(playlist_url, download=False)
+            
+            if not playlist_info:
+                raise ValueError("Could not extract playlist information")
+            
+            # Extract just the video URLs
+            video_urls = []
+            for entry in playlist_info['entries']:
+                if entry and entry.get('url') or entry.get('webpage_url'):
+                    # Prefer direct URL if available, fallback to webpage_url
+                    url = entry.get('url') or entry.get('webpage_url')
+                    video_urls.append(url)
+            
+            return video_urls
+            
+    except Exception as e:
+        raise Exception(f"Error extracting playlist URLs: {str(e)}")
+
+def get_video_formats(video_url):
+    """
+    Extracts video formats for a given video URL.
+    """
+    try:
+        formats = extract_video_info(video_url)
+        return formats
+    except Exception as e:
+        raise Exception(f"Error extracting video formats: {str(e)}")
 
 def download_video(video_url, video_format_id, audio_format_id, output_path, watermark=True, watermark_text="LIMITLESS MEDIA", progress_callback=None):
     """
@@ -153,3 +227,111 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
 
     except Exception as e:
         return f" Error: {e}"
+
+def process_url(url, output_path, watermark=True, watermark_text="LIMITLESS MEDIA", progress_callback=None):
+    """
+    Process a URL which could be either a single video or a playlist.
+    
+    Args:
+        url (str): YouTube URL (video or playlist)
+        output_path (str): Directory to save the videos
+        watermark (bool): Whether to add watermark
+        watermark_text (str): Text to use for watermark
+        progress_callback (function): Callback for progress updates
+        
+    Returns:
+        dict: Information about the processed videos including:
+            - is_playlist (bool): Whether URL was a playlist
+            - videos (list): List of dictionaries containing:
+                - url: Video URL
+                - title: Video title
+                - formats: Available formats
+                - status: Download status
+    """
+    result = {
+        'is_playlist': False,
+        'videos': [],
+        'watermark': watermark  # Store watermark state in result
+    }
+    
+    try:
+        if is_playlist(url):
+            result['is_playlist'] = True
+            video_urls = get_playlist_urls(url)
+            
+            # Create playlist directory
+            playlist_dir = os.path.join(output_path, f"playlist_{int(time.time())}")
+            os.makedirs(playlist_dir, exist_ok=True)
+            
+            # Process each video in the playlist
+            for video_url in video_urls:
+                video_info = {
+                    'url': video_url,
+                    'title': None,
+                    'formats': None,
+                    'status': 'pending'
+                }
+                
+                try:
+                    # Get available formats for the video
+                    formats = get_video_formats(video_url)
+                    video_info['formats'] = formats
+                    
+                    # Get video title for the info
+                    with YoutubeDL({'quiet': True}) as ydl:
+                        info = ydl.extract_info(video_url, download=False)
+                        video_info['title'] = info.get('title', 'Unknown Title')
+                    
+                    video_info['status'] = 'ready'
+                    
+                except Exception as e:
+                    video_info['status'] = f'error: {str(e)}'
+                
+                result['videos'].append(video_info)
+                
+                # Call progress callback if provided
+                if progress_callback:
+                    progress_callback({
+                        'type': 'video_processed',
+                        'video': video_info,
+                        'total_videos': len(video_urls)
+                    })
+            
+        else:
+            # Single video processing
+            video_info = {
+                'url': url,
+                'title': None,
+                'formats': None,
+                'status': 'pending'
+            }
+            
+            try:
+                # Get available formats for the video
+                formats = get_video_formats(url)
+                video_info['formats'] = formats
+                
+                # Get video title
+                with YoutubeDL({'quiet': True}) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    video_info['title'] = info.get('title', 'Unknown Title')
+                
+                video_info['status'] = 'ready'
+                
+            except Exception as e:
+                video_info['status'] = f'error: {str(e)}'
+            
+            result['videos'].append(video_info)
+            
+            # Call progress callback if provided
+            if progress_callback:
+                progress_callback({
+                    'type': 'video_processed',
+                    'video': video_info,
+                    'total_videos': 1
+                })
+        
+        return result
+        
+    except Exception as e:
+        raise Exception(f"Error processing URL: {str(e)}")
