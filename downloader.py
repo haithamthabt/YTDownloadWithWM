@@ -69,10 +69,6 @@ def filter_matching_video_formats(formats, best_video):
     ]
     return matching_formats
 
-
-    return matching_formats
-
-
 def download_video(video_url, video_format_id, audio_format_id, output_path, watermark=True, watermark_text="LIMITLESS MEDIA"):
     """
     Downloads the selected video and audio formats, merges them, and applies a watermark if enabled.
@@ -84,12 +80,13 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
             audio_format = next(f for f in info['formats'] if f['format_id'] == audio_format_id)
 
         # Extract video properties
+        video_title = info.get('title', 'downloaded_video')  # Keep spaces in the title
         video_codec = video_format.get('vcodec', 'libx264')
         video_bitrate = video_format.get('tbr', 0)
 
         # File paths
-        merged_input = f"{output_path}/merged_video.mkv"
-        output_watermarked = f"{output_path}/watermarked_video.mkv"
+        merged_input = f"{output_path}/{video_title}.mkv"
+        output_watermarked = f"{output_path}/{video_title}_watermarked.mkv"
 
         # Step 1: Download video and audio
         ydl_opts = {
@@ -116,5 +113,3 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
 
     except Exception as e:
         return f"❌ Error: {e}"
-
-
