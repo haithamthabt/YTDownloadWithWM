@@ -130,13 +130,15 @@ def download_playlist_videos():
         os.makedirs(playlist_dir, exist_ok=True)
         
         for i, (video_url, format_var) in enumerate(format_vars.items(), 1):
-            selected_format_str = format_var.get()
+            selected_format_str = format_var['format_var'].get()
             # Extract format ID from the string (format is "format_note => ID: format_id, Res: resolution, FPS: fps, Size: filesize MB")
             format_id = selected_format_str.split("ID: ")[1].split(",")[0].strip() if "ID: " in selected_format_str else selected_format_str
             
+            audio_format_id = format_var['audio_format_id']
             watermark = watermark_vars[video_url].get() if video_url in watermark_vars else False
             print(f"Downloading video {i}: {video_url}")
             print(f"Selected format ID: {format_id}")
+            print(f"Audio format ID: {audio_format_id}")
             print(f"Watermark: {watermark}")
             
             # Update label to show which video is being downloaded
@@ -144,7 +146,7 @@ def download_playlist_videos():
             
             try:
                 # Use existing download function's core logic
-                download_video(video_url, format_id, watermark, playlist_dir)
+                download_video(video_url, format_id, audio_format_id, playlist_dir, watermark)
                 
                 # Update progress for this video
                 progress_bar["value"] = (i / total_videos) * 100
@@ -235,18 +237,20 @@ def show_playlist_window(playlist_info):
             
             # Create format selection dropdown
             format_var = tk.StringVar()
-            format_vars[video['url']] = format_var  # Store the format variable
-            format_combo = ttk.Combobox(format_frame, textvariable=format_var, state="readonly", width=80)  # Made combobox wider
+            format_vars[video['url']] = {
+                'format_var': format_var,
+                'audio_format_id': get_best_audio_format(video['formats'])['format_id']
+            }
             
             # Get best video format first to determine properties
             best_video = get_best_video_format(video['formats'])
-            best_audio = get_best_audio_format(video['formats'])
             
-            if best_video and best_audio:
+            if best_video:
                 # Get matching video formats based on best video properties
                 matching_formats = filter_matching_video_formats(video['formats'], best_video)
                 
                 # Format the combo box values
+                format_combo = ttk.Combobox(format_frame, textvariable=format_var, state="readonly", width=80)  # Made combobox wider
                 format_combo['values'] = [
                     f"{fmt['format_note']} => ID: {fmt['format_id']}, Res: {fmt.get('resolution', 'N/A')}, FPS: {fmt.get('fps', 'N/A')}, Size: {fmt.get('filesize', 0) / 1024 / 1024:.2f} MB"
                     for fmt in matching_formats
@@ -256,6 +260,7 @@ def show_playlist_window(playlist_info):
                 if format_combo['values']:
                     format_combo.set(format_combo['values'][0])
             else:
+                format_combo = ttk.Combobox(format_frame, textvariable=format_var, state="readonly", width=80)  # Made combobox wider
                 format_combo['values'] = ["No suitable formats found"]
                 
             format_combo.pack(side="left", padx=5)

@@ -161,7 +161,6 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - Progress visualization
 
 2. **Functionality**
-   - Playlist support (in progress)
    - Batch processing
    - Download queue
 
@@ -203,3 +202,124 @@ def add_moving_watermark(input_file, output_file, watermark_text):
 - Uses OpenCV for video processing
 - Adds moving watermark text
 - Configurable text and movement
+
+## 7. Updated Development Notes
+
+### 7.1 Project Structure
+- `main.py`: Main GUI application using tkinter
+- `downloader.py`: YouTube video downloading functionality using yt-dlp
+- `watermark.py`: Video watermarking functionality
+
+### 7.2 Features
+- Download YouTube videos with format selection
+- Add watermark to downloaded videos
+- Full playlist support
+  - Shows list of videos in playlist
+  - Format selection per video
+  - Watermark toggle per video
+  - Downloads videos with selected settings
+  - Creates timestamped playlist folders
+
+### 7.3 Implementation Details
+
+#### 7.3.1 Video Download Process
+1. Extract video information using yt-dlp
+2. Filter and present best quality formats
+3. Download selected format
+4. Add watermark if enabled
+
+#### 7.3.2 Playlist Implementation
+1. Detect if URL is a playlist
+2. Extract all video URLs from playlist
+3. Create scrollable window showing:
+   - Video titles
+   - Format selection dropdown (matching single video quality)
+   - Watermark toggle (synced with main window)
+4. Download functionality:
+   - Downloads each video with selected format
+   - Applies watermark based on individual toggles
+   - Shows progress for overall playlist
+   - Creates timestamped folder for playlist videos
+
+#### 7.3.3 Format Selection
+- Uses yt-dlp to get available formats
+- Filters to show best quality options:
+  1. Highest resolution
+  2. Best FPS
+  3. Preferred codec (VP9 > AVC1)
+- Shows detailed format info:
+  - Resolution
+  - FPS
+  - File size
+  - Format ID
+
+#### 7.3.4 Watermarking
+- Uses OpenCV for video processing
+- Adds moving watermark text
+- Configurable text and movement
+
+## 8. Future Improvements
+
+### Playlist Enhancements
+
+#### 1. User Interface
+- Add folder name input field
+  - Default to playlist title
+  - Allow custom naming
+  - Add timestamp option toggle
+- Add location selection button
+  - Remember last used location
+  - Show current selected path
+- Add download controls
+  - Cancel button for ongoing downloads
+  - Pause/Resume functionality
+  - Select all/none for watermarks
+- Improve progress display
+  - Individual progress bars per video
+  - Overall playlist progress
+  - Download speed indicator
+  - Time remaining estimation
+  - Current video X of Y indicator
+
+#### 2. Download Management
+- Implement download queue system
+  - Allow adding multiple playlists
+  - Show queue status
+  - Allow reordering queue
+- Add error handling
+  - Retry failed downloads
+  - Skip option for problematic videos
+  - Log errors for debugging
+- Add download resumption
+  - Save download state
+  - Resume interrupted downloads
+  - Handle network interruptions
+
+#### 3. Settings and Preferences
+- Save user preferences
+  - Default download location
+  - Default watermark settings
+  - Format selection preferences
+- Add playlist presets
+  - Save format selections
+  - Quick load previous settings
+  - Batch apply settings
+
+#### 4. Notifications
+- Add system notifications
+  - Download start/completion
+  - Error notifications
+  - Progress milestones
+- Add in-app notifications
+  - Status messages
+  - Error reporting
+  - Success confirmations
+
+#### 5. Performance Optimization
+- Implement concurrent downloads
+  - Configurable number of simultaneous downloads
+  - Bandwidth management
+  - Progress tracking for parallel downloads
+- Optimize memory usage
+  - Clean up temporary files
+  - Manage large playlists efficiently
