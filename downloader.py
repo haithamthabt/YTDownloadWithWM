@@ -54,18 +54,21 @@ def get_best_video_format(formats):
 def filter_matching_video_formats(formats, best_video):
     """
     Filters video formats matching the best video's FPS and codec.
-    Excludes formats without a file size.
+    Excludes formats with audio and formats without a file size.
     """
     matching_formats = [
-    f for f in formats
-    if f.get('fps', 0) == best_video.get('fps', 0) and
-       (
-           any(codec in f.get('vcodec', '').lower() for codec in ["vp9", "vp09"])
-           if "vp9" in best_video.get('vcodec', '').lower() or "vp09" in best_video.get('vcodec', '').lower()
-           else "avc1" in f.get('vcodec', '').lower()
-       ) and
-       f.get('filesize') is not None
-]
+        f for f in formats
+        if f.get('fps', 0) == best_video.get('fps', 0) and
+           f.get('acodec', 'none') == 'none' and  # Exclude formats with audio
+           (
+               f.get('vcodec', '').lower().startswith("vp")  # VP9 or variants like vp09.xxx
+               if best_video.get('vcodec', '').lower().startswith("vp")
+               else "avc1" in f.get('vcodec', '').lower()  # Match avc1 codec
+           ) and
+           f.get('filesize') is not None  # Ensure file size exists
+    ]
+    return matching_formats
+
 
     return matching_formats
 
