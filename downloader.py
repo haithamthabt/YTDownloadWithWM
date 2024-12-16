@@ -1,8 +1,12 @@
 from yt_dlp import YoutubeDL
 import subprocess
+import os
+from watermark import add_moving_watermark
+
 
 
 #testing url https://youtu.be/wpJnigMKFmQ?feature=shared
+#another url longer https://youtu.be/CdTtTCK2EPU?feature=shared
 def extract_video_info(video_url):
     """
     Extracts video information and formats using yt_dlp.
@@ -65,9 +69,10 @@ def filter_matching_video_formats(formats, best_video):
 
     return matching_formats
 
-def download_video(video_url, video_format_id, audio_format_id, output_path):
+
+def download_video(video_url, video_format_id, audio_format_id, output_path, watermark=True, watermark_text="LIMITLESS MEDIA"):
     """
-    Downloads the selected video and audio formats and injects bitrate metadata.
+    Downloads the selected video and audio formats, merges them, and applies a watermark if enabled.
     """
     try:
         with YoutubeDL({'quiet': True}) as ydl:
@@ -75,32 +80,38 @@ def download_video(video_url, video_format_id, audio_format_id, output_path):
             video_format = next(f for f in info['formats'] if f['format_id'] == video_format_id)
             audio_format = next(f for f in info['formats'] if f['format_id'] == audio_format_id)
 
-        # Extract video and audio bitrates
+        # Extract video properties
+        video_codec = video_format.get('vcodec', 'libx264')
         video_bitrate = video_format.get('tbr', 0)
-        audio_bitrate = audio_format.get('abr', 0)
 
-        # yt-dlp options
-        output_file = f"{output_path}/%(title)s.%(ext)s"
+        # File paths
+        merged_input = f"{output_path}/merged_video.mkv"
+        output_watermarked = f"{output_path}/watermarked_video.mkv"
+
+        # Step 1: Download video and audio
         ydl_opts = {
             'format': f"{video_format_id}+{audio_format_id}",
-            'outtmpl': output_file,
+            'outtmpl': merged_input,
             'merge_output_format': 'mkv',
-            'postprocessor_args': [
-                '-metadata', f'VIDEO_BITRATE={video_bitrate} kbps',
-                '-metadata', f'AUDIO_BITRATE={audio_bitrate} kbps',
-            ]
         }
-
-        # Start the download
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
-        return f"✅ Video downloaded Successfully"
+        # Step 2: Apply watermark if enabled
+        if watermark:
+            add_moving_watermark(
+                input_file=merged_input,
+                output_file=output_watermarked,
+                watermark_text=watermark_text,
+                video_codec=video_codec,
+                video_bitrate=video_bitrate
+            )
+
+            return f"✅ Video downloaded and watermarked: {output_watermarked}"
+
+        return f"✅ Video downloaded successfully: {merged_input}"
+
     except Exception as e:
         return f"❌ Error: {e}"
-
-
-
-
 
 

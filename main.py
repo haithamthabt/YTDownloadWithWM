@@ -1,5 +1,4 @@
 import tkinter as tk
-from watermark import select_and_add_watermark
 from tkinter import filedialog
 from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video
 
@@ -75,6 +74,7 @@ def fetch_best_formats():
 def handle_download():
     """
     Downloads the selected video format and best audio format.
+    Adds watermark if the checkbox is enabled.
     """
     global best_audio, filtered_video_formats
     url = input_url.get()
@@ -88,14 +88,12 @@ def handle_download():
         label.config(text="⚠️ Best audio format not found. Fetch formats again.")
         return
 
-
-    # Retrieve the selected video format ID from the dropdown
-
+    # Retrieve the selected video format ID
     dropdown = format_frame.winfo_children()[0]  # Get the dropdown widget
     selected_description = selected_format.get()
-    video_format_id = dropdown.format_id_map[selected_description]  # Map description to format ID
+    video_format_id = dropdown.format_id_map[selected_description]
 
-    audio_format_id = best_audio['format_id']  # Best audio format
+    audio_format_id = best_audio['format_id']
 
     # Ask user to select output folder
     output_path = filedialog.askdirectory(title="Select Download Folder")
@@ -103,9 +101,13 @@ def handle_download():
         label.config(text="⚠️ No folder selected.")
         return
 
-    # Call the updated download function with metadata
-    result = download_video(url, video_format_id, audio_format_id, output_path)
+    # Check if watermark is enabled
+    add_watermark = watermark_enabled.get()
+
+    # Call the updated download function
+    result = download_video(url, video_format_id, audio_format_id, output_path, watermark=add_watermark)
     label.config(text=result)
+
 
 
 
@@ -132,8 +134,13 @@ fetch_best_formats_button.pack(pady=10)
 download_button = tk.Button(app, text="Download YouTube Video", command=handle_download)
 download_button.pack(pady=10)
 
-watermark_button = tk.Button(app, text="Add Watermark to Video", command=handle_watermark)
-watermark_button.pack(pady=10)
+# Variable to store watermark check state
+watermark_enabled = tk.BooleanVar(value=True)  # Checked by default
+
+# Checkbutton for watermark option
+watermark_checkbutton = tk.Checkbutton(app, text="Add Watermark", variable=watermark_enabled)
+watermark_checkbutton.pack(pady=5)
+
 
 # Add a frame for the format dropdown
 format_frame = tk.Frame(app)
