@@ -71,7 +71,8 @@ def filter_matching_video_formats(formats, best_video):
 
 def download_video(video_url, video_format_id, audio_format_id, output_path, watermark=True, watermark_text="LIMITLESS MEDIA"):
     """
-    Downloads the selected video and audio formats, merges them, and applies a watermark if enabled.
+    Downloads the selected video and audio formats, merges them, applies a watermark if enabled,
+    and removes the temporary merged file after successfully creating the watermarked file.
     """
     try:
         with YoutubeDL({'quiet': True}) as ydl:
@@ -80,15 +81,15 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
             audio_format = next(f for f in info['formats'] if f['format_id'] == audio_format_id)
 
         # Extract video properties
-        video_title = info.get('title', 'downloaded_video')  # Keep spaces in the title
+        video_title = info.get('title', 'downloaded_video').replace("/", "_")  # Prevent invalid filename characters
         video_codec = video_format.get('vcodec', 'libx264')
         video_bitrate = video_format.get('tbr', 0)
 
         # File paths
-        merged_input = f"{output_path}/{video_title}.mkv"
-        output_watermarked = f"{output_path}/{video_title}_watermarked.mkv"
+        merged_input = f"{output_path}/{video_title}_temp.mkv"  # Temporary merged video
+        output_watermarked = f"{output_path}/{video_title}.mkv"
 
-        # Step 1: Download video and audio
+        # Step 1: Download video and audio into a temporary merged file
         ydl_opts = {
             'format': f"{video_format_id}+{audio_format_id}",
             'outtmpl': merged_input,
@@ -99,17 +100,29 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
 
         # Step 2: Apply watermark if enabled
         if watermark:
-            add_moving_watermark(
-                input_file=merged_input,
-                output_file=output_watermarked,
-                watermark_text=watermark_text,
-                video_codec=video_codec,
-                video_bitrate=video_bitrate
-            )
+            try:
+                add_moving_watermark(
+                    input_file=merged_input,
+                    output_file=output_watermarked,
+                    watermark_text=watermark_text,
+                    video_codec=video_codec,
+                    video_bitrate=video_bitrate
+                )
 
-            return f"✅ Video downloaded and watermarked: {output_watermarked}"
+                # Delete the temporary merged file only after successful watermarking
+                if os.path.exists(merged_input):
+                    os.remove(merged_input)
 
-        return f"✅ Video downloaded successfully: {merged_input}"
+                return f"✅ Video downloaded and watermarked: {output_watermarked}"
+
+            except Exception as e:
+                return f"❌ Error during watermarking: {e}. Temporary file saved as {merged_input}"
+
+        # If watermarking is disabled, rename the temporary file to the final output
+        final_output = f"{output_path}/{video_title}.mkv"
+        os.rename(merged_input, final_output)
+        return f"✅ Video downloaded successfully: {final_output}"
 
     except Exception as e:
         return f"❌ Error: {e}"
+
