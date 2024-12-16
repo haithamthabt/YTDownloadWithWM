@@ -1,17 +1,10 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, ttk
+import threading
 from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video
 
 # Global variables
 selected_format = None  # To store the selected video format
-
-def handle_watermark():
-    """
-    Handles the watermarking process by calling the select_and_add_watermark function.
-    """
-    result = select_and_add_watermark()
-    label.config(text=result)
-
 
 def fetch_best_formats():
     """
@@ -45,16 +38,12 @@ def fetch_best_formats():
     for widget in format_frame.winfo_children():
         widget.destroy()
 
+    # Initialize selected_format if not already set
+    global selected_format
+    if selected_format is None:
+        selected_format = tk.StringVar()
+
     # Populate dropdown with matching video formats
-    format_descriptions = [
-        f"{f['format_note']},ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB"
-        for f in filtered_video_formats
-    ]
-    format_ids = [f['format_id'] for f in filtered_video_formats]
-
-    # Streamlined description-to-format mapping
-    selected_format = tk.StringVar(value=None)
-
     format_id_map = {
         f"{f['format_note']} => ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB": f['format_id']
         for f in filtered_video_formats
@@ -66,15 +55,11 @@ def fetch_best_formats():
 
     # Attach the format ID map to the dropdown for later retrieval
     dropdown.format_id_map = format_id_map
-
-
     label.config(text="Matching video formats fetched! Select one and click 'Download Video'.")
-
 
 def handle_download():
     """
-    Downloads the selected video format and best audio format.
-    Adds watermark if the checkbox is enabled.
+    Starts the download process in a separate thread to keep the GUI responsive.
     """
     global best_audio, filtered_video_formats
     url = input_url.get()
@@ -92,7 +77,6 @@ def handle_download():
     dropdown = format_frame.winfo_children()[0]  # Get the dropdown widget
     selected_description = selected_format.get()
     video_format_id = dropdown.format_id_map[selected_description]
-
     audio_format_id = best_audio['format_id']
 
     # Ask user to select output folder
@@ -104,17 +88,28 @@ def handle_download():
     # Check if watermark is enabled
     add_watermark = watermark_enabled.get()
 
-    # Call the updated download function
-    result = download_video(url, video_format_id, audio_format_id, output_path, watermark=add_watermark)
-    label.config(text=result)
+    # Progress update callback
+    def progress_callback(progress):
+        progress_bar['value'] = progress  # Update progress bar
+        app.update_idletasks()
 
+    # Threaded download function
+    def threaded_download():
+        progress_bar['value'] = 0  # Reset progress bar before download starts
+        result = download_video(
+            url, video_format_id, audio_format_id, output_path,
+            watermark=add_watermark, progress_callback=progress_callback
+        )
+        label.config(text=result)
+        progress_bar['value'] = 0  # Reset progress bar after completion
 
-
+    # Start download in a new thread
+    threading.Thread(target=threaded_download, daemon=True).start()
 
 # Create the Tkinter app window
 app = tk.Tk()
 app.title("YouTube Download and Watermark Tool")
-app.geometry("500x550")
+app.geometry("500x600")
 
 # Add a label
 label = tk.Label(app, text="YouTube Video Downloader and Watermarker", wraplength=450)
@@ -136,15 +131,16 @@ download_button.pack(pady=10)
 
 # Variable to store watermark check state
 watermark_enabled = tk.BooleanVar(value=True)  # Checked by default
-
-# Checkbutton for watermark option
 watermark_checkbutton = tk.Checkbutton(app, text="Add Watermark", variable=watermark_enabled)
 watermark_checkbutton.pack(pady=5)
-
 
 # Add a frame for the format dropdown
 format_frame = tk.Frame(app)
 format_frame.pack(pady=10)
+
+# Add a progress bar
+progress_bar = ttk.Progressbar(app, orient="horizontal", length=400, mode="determinate")
+progress_bar.pack(pady=10)
 
 # Add a copyright label
 copyright_label = tk.Label(app, text="© 2024 Limitless Media", font=("Arial", 10), fg="gray")
