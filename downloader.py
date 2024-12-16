@@ -72,6 +72,7 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
     """
     Downloads the selected video and audio formats, merges them, applies a watermark if enabled,
     and removes the temporary merged file after successfully creating the watermarked file.
+    Also adds audio bitrate metadata to the output file.
     """
     try:
         # Progress hook function for yt_dlp
@@ -95,6 +96,7 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
         video_title = info.get('title', 'downloaded_video').replace("/", "_")  # Prevent invalid filename characters
         video_codec = video_format.get('vcodec', 'libx264')
         video_bitrate = video_format.get('tbr', 0)
+        audio_bitrate = audio_format.get('abr', 0)  # Get audio bitrate for metadata
 
         # File paths
         merged_input = f"{output_path}/{video_title}_temp.mkv"  # Temporary merged video
@@ -106,6 +108,20 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
             'outtmpl': merged_input,
             'merge_output_format': 'mkv',
             'progress_hooks': [progress_hook],  # Attach the progress hook
+            'postprocessor_args': [
+                # Add metadata during merge
+                '-metadata', f'audio_bitrate={audio_bitrate}kbps',
+                '-metadata', f'video_bitrate={video_bitrate}kbps',
+                '-metadata', f'description=Video Bitrate: {video_bitrate}kbps, Audio Bitrate: {audio_bitrate}kbps',
+                # Add metadata specifically to audio stream
+                '-metadata:s:a:0', f'title={video_title} audio',
+                '-metadata:s:a:0', f'bitrate={audio_bitrate}',
+                # Add metadata specifically to video stream
+                '-metadata:s:v:0', f'title={video_title} video',
+                '-metadata:s:v:0', f'bitrate={video_bitrate}',
+                # Clear any existing metadata that might interfere
+                '-map_metadata', '-1'
+            ],
         }
         with YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
@@ -125,15 +141,15 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
                 if os.path.exists(merged_input):
                     os.remove(merged_input)
 
-                return f"✅ Video downloaded and watermarked: {output_watermarked}"
+                return f" Video downloaded and watermarked: {output_watermarked}"
 
             except Exception as e:
-                return f"❌ Error during watermarking: {e}. Temporary file saved as {merged_input}"
+                return f" Error during watermarking: {e}. Temporary file saved as {merged_input}"
 
         # If watermarking is disabled, rename the temporary file to the final output
         final_output = f"{output_path}/{video_title}.mkv"
         os.rename(merged_input, final_output)
-        return f"✅ Video downloaded successfully: {final_output}"
+        return f" Video downloaded successfully: {final_output}"
 
     except Exception as e:
-        return f"❌ Error: {e}"
+        return f" Error: {e}"
