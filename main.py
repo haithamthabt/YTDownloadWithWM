@@ -173,8 +173,6 @@ def show_playlist_window(playlist_info):
     """
     Show a new window with playlist information and format selection
     """
-    print("Playlist info received:", playlist_info)  # Debug print
-    print("Number of videos:", len(playlist_info.get('videos', [])))  # Debug print
     
     global format_vars, watermark_vars
     # Clear previous variables
@@ -346,9 +344,6 @@ input_url.pack(pady=5)
 # Add buttons for fetching formats and downloading
 fetch_best_formats_button = tk.Button(root, text="Fetch Best Video Formats", command=check_url)
 fetch_best_formats_button.pack(pady=10)
-
-download_button = tk.Button(root, text="Download YouTube Video", command=handle_download)
-download_button.pack(pady=10)
 
 # Add watermark checkbox
 watermark_enabled = tk.BooleanVar(value=True)  # Checked by default

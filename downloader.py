@@ -259,11 +259,7 @@ def process_url(url, output_path, watermark=True, watermark_text="LIMITLESS MEDI
     try:
         if is_playlist(url):
             result['is_playlist'] = True
-            video_urls = get_playlist_urls(url)
-            
-            # Create playlist directory
-            playlist_dir = os.path.join(output_path, f"playlist_{int(time.time())}")
-            os.makedirs(playlist_dir, exist_ok=True)
+            video_urls = get_playlist_urls(url)           
             
             # Process each video in the playlist
             for video_url in video_urls:
