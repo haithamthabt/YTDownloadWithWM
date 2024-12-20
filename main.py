@@ -169,34 +169,27 @@ def download_playlist_videos():
     # Start download in a new thread
     threading.Thread(target=threaded_playlist_download, daemon=True).start()
 
-def show_playlist_window(playlist_info):
+def expand_window_for_playlist(playlist_info):
     """
-    Show a new window with playlist information and format selection
+    Show playlist information and format selection in the main window
     """
-    
     global format_vars, watermark_vars
     # Clear previous variables
     format_vars.clear()
     watermark_vars.clear()
     
-    playlist_window = tk.Toplevel(root)
-    playlist_window.title("Playlist Videos")
-    playlist_window.configure(bg=root.cget('bg'))  # Match main window background
-    playlist_window.geometry("1000x600")  # Made window wider
+    # Clear any existing playlist frame
+    for widget in root.winfo_children():
+        if isinstance(widget, ttk.Frame) and widget.winfo_name() == 'playlist_frame':
+            widget.destroy()
     
-    # Configure the switch style for checkbuttons
-    style = ttk.Style()
-    style.configure('Switch.TCheckbutton',
-                   background=root.cget('bg'),
-                   foreground='white')
-    
-    # Create main frame with scrollbar
-    main_frame = ttk.Frame(playlist_window)
-    main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    # Create main frame with scrollbar for playlist content
+    playlist_frame = ttk.Frame(root, name='playlist_frame')
+    playlist_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
     
     # Add canvas and scrollbar
-    canvas = tk.Canvas(main_frame)
-    scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+    canvas = tk.Canvas(playlist_frame)
+    scrollbar = ttk.Scrollbar(playlist_frame, orient="vertical", command=canvas.yview)
     scrollable_frame = ttk.Frame(canvas)
     
     scrollable_frame.bind(
@@ -212,7 +205,7 @@ def show_playlist_window(playlist_info):
     canvas.pack(side="left", fill="both", expand=True)
     
     # Add header
-    header = ttk.Label(scrollable_frame, text=f"Total Videos: {len(playlist_info['videos'])}", font=('Helvetica', 12, 'bold'))
+    header = ttk.Label(scrollable_frame, text=f"Playlist Videos (Total: {len(playlist_info['videos'])})", font=('Helvetica', 12, 'bold'))
     header.pack(pady=10)
     
     # Dictionary to store format variables for each video
@@ -295,7 +288,7 @@ def check_url():
         
         if result['is_playlist']:
             # Show playlist window
-            show_playlist_window(result)
+            expand_window_for_playlist(result)
         else:
             # Single video - use existing format display
             video = result['videos'][0]
@@ -327,7 +320,7 @@ def check_url():
 # Create the Tkinter app window
 root = tk.Tk()
 root.title("YouTube Download and Watermark Tool")
-root.geometry("500x600")
+root.geometry("1200x800")
 
 # Add a label for app title and status messages
 label = tk.Label(root, text="YouTube Video Downloader and Watermarker", wraplength=450)
