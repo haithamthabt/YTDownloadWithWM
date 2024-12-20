@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.0.0] - 2024-12-20
+### Major UI Enhancements and Playlist Integration
+- Increased initial window size for better usability.
+- Integrated playlist view directly into the main window, improving user experience.
+- Enhanced format selection and watermark options for each video in the playlist.
+- Improved overall layout and scrolling functionality for better content management.
+- Most functionalities are now fully operational, providing a seamless experience for users.
+
 ## [1.0.0] - 2024-06-16
 ### Added
 - Initial release of the YouTube downloader and watermark tool.
@@ -31,6 +39,10 @@
   - Added proper scrolling for multiple videos
   - Organized format options to match single video display
   - Added progress tracking for playlist downloads
+- Improved main window layout
+  - Increased initial window size to 1200x800
+  - Integrated playlist view into main window instead of separate window
+  - Better space utilization for playlist content
 
 ### TODO
 - Playlist Improvements:

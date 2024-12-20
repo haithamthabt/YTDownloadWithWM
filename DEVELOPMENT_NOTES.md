@@ -108,9 +108,53 @@ def add_moving_watermark(input_file, output_file, watermark_text):
 - Uses FFmpeg for processing
 - Maintains video quality
 
-## 3. Implementation Details
+## 3. UI Design and Implementation
 
-### 3.1 Component Architecture
+### 3.1 Main Window Layout
+- Initial window size set to 1200x800 for optimal content display
+- Top section contains:
+  - URL input field
+  - Format selection for single videos
+  - Watermark toggle
+  - Download button
+- Bottom section (playlist view) dynamically shows:
+  - List of videos in scrollable frame
+  - Individual format selections per video
+  - Individual watermark toggles
+  - Playlist download button
+
+### 3.2 Playlist Integration
+```python
+def expand_window_for_playlist(playlist_info):
+    """
+    Expands main window to display playlist information and format selection
+    Key features:
+    - Cleans up existing playlist frame if present
+    - Creates scrollable frame for video list
+    - Adds format selection and watermark toggle per video
+    - Maintains consistent UI with single video display
+    """
+```
+
+### 3.3 UI Components
+1. **Scrollable Frame Implementation**
+   - Canvas with scrollbar for smooth navigation
+   - Dynamic content sizing based on video count
+   - Proper cleanup of previous content
+
+2. **Format Selection**
+   - Combobox with detailed format information
+   - Shows resolution, FPS, and file size
+   - Consistent width for better readability
+
+3. **Progress Tracking**
+   - Overall progress bar for playlist downloads
+   - Status updates in main label
+   - Clear feedback for ongoing operations
+
+## 4. Implementation Details
+
+### 4.1 Component Architecture
 1. **GUI Layer** (`main.py`)
    - Tkinter-based interface
    - Threaded downloads for responsiveness
@@ -123,7 +167,7 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - FFmpeg integration
    - Watermark application
 
-### 3.2 Dependencies
+### 4.2 Dependencies
 - **Core Requirements**
   - Python 3.x
   - yt-dlp: Video extraction and downloading
@@ -136,24 +180,24 @@ def add_moving_watermark(input_file, output_file, watermark_text):
   ```
   Note: FFmpeg must be installed separately on the system
 
-## 4. Development Decisions
+## 5. Development Decisions
 
-### 4.1 Why Separate Audio/Video?
+### 5.1 Why Separate Audio/Video?
 - Better quality control
 - More format options
 - Quality customization
 
-### 4.2 Why FFmpeg for Watermarks?
+### 5.2 Why FFmpeg for Watermarks?
 - Industry standard
 - High performance
 - Quality preservation
 
-### 4.3 Why Threaded Downloads?
+### 5.3 Why Threaded Downloads?
 - UI responsiveness
 - Progress tracking
 - Better UX
 
-## 5. Future Enhancements
+## 6. Future Enhancements
 
 1. **User Interface**
    - Watermark customization
@@ -169,24 +213,24 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - Error handling
    - Logging system
 
-## 6. Playlist Implementation Details
+## 7. Playlist Implementation Details
 
-### 6.1 Detecting Playlists
+### 7.1 Detecting Playlists
 - Check if URL is a playlist
 - Extract all video URLs from playlist
 
-### 6.2 Playlist GUI
+### 7.2 Playlist GUI
 - Create scrollable window showing:
   - Video titles
   - Format selection dropdown (matching single video quality)
   - Watermark toggle (synced with main window)
 
-### 6.3 Downloading Playlists
+### 7.3 Downloading Playlists
 - Download each video with selected format
 - Apply watermark based on individual toggles
 - Show progress for overall playlist
 
-### 6.4 Format Selection for Playlists
+### 7.4 Format Selection for Playlists
 - Uses yt-dlp to get available formats
 - Filters to show best quality options:
   1. Highest resolution
@@ -198,19 +242,19 @@ def add_moving_watermark(input_file, output_file, watermark_text):
   - File size
   - Format ID
 
-### 6.5 Watermarking for Playlists
+### 7.5 Watermarking for Playlists
 - Uses OpenCV for video processing
 - Adds moving watermark text
 - Configurable text and movement
 
-## 7. Updated Development Notes
+## 8. Updated Development Notes
 
-### 7.1 Project Structure
+### 8.1 Project Structure
 - `main.py`: Main GUI application using tkinter
 - `downloader.py`: YouTube video downloading functionality using yt-dlp
 - `watermark.py`: Video watermarking functionality
 
-### 7.2 Features
+### 8.2 Features
 - Download YouTube videos with format selection
 - Add watermark to downloaded videos
 - Full playlist support
@@ -220,15 +264,15 @@ def add_moving_watermark(input_file, output_file, watermark_text):
   - Downloads videos with selected settings
   - Creates timestamped playlist folders
 
-### 7.3 Implementation Details
+### 8.3 Implementation Details
 
-#### 7.3.1 Video Download Process
+#### 8.3.1 Video Download Process
 1. Extract video information using yt-dlp
 2. Filter and present best quality formats
 3. Download selected format
 4. Add watermark if enabled
 
-#### 7.3.2 Playlist Implementation
+#### 8.3.2 Playlist Implementation
 1. Detect if URL is a playlist
 2. Extract all video URLs from playlist
 3. Create scrollable window showing:
@@ -241,7 +285,7 @@ def add_moving_watermark(input_file, output_file, watermark_text):
    - Shows progress for overall playlist
    - Creates timestamped folder for playlist videos
 
-#### 7.3.3 Format Selection
+#### 8.3.3 Format Selection
 - Uses yt-dlp to get available formats
 - Filters to show best quality options:
   1. Highest resolution
@@ -253,12 +297,12 @@ def add_moving_watermark(input_file, output_file, watermark_text):
   - File size
   - Format ID
 
-#### 7.3.4 Watermarking
+#### 8.3.4 Watermarking
 - Uses OpenCV for video processing
 - Adds moving watermark text
 - Configurable text and movement
 
-## 8. Future Improvements
+## 9. Future Improvements
 
 ### Playlist Enhancements
 
