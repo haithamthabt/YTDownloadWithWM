@@ -123,10 +123,13 @@ def download_playlist_videos():
         print(f"Total videos to download: {total_videos}")
         
         # Get download path
-        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        download_path = filedialog.askdirectory(title="Select Playlist Download Folder")
+        if not download_path:
+            label.config(text="⚠️ Download cancelled.")
+            return
         
         # Create a playlist directory with timestamp
-        playlist_dir = os.path.join(download_path, f"playlist_{int(time.time())}")
+        playlist_dir = os.path.join(download_path, "Videos")
         os.makedirs(playlist_dir, exist_ok=True)
         
         for i, (video_url, format_var) in enumerate(format_vars.items(), 1):

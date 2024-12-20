@@ -173,8 +173,10 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
         audio_bitrate = audio_format.get('abr', 0)  # Get audio bitrate for metadata
 
         # File paths
-        merged_input = f"{output_path}/{video_title}_temp.mkv"  # Temporary merged video
-        output_watermarked = f"{output_path}/{video_title}.mkv"
+        output_filename = os.path.basename(output_path)
+        output_dir = os.path.dirname(output_path)
+        merged_input = os.path.join(output_dir, f"{video_title}_temp.mkv")  # Temporary merged video
+        output_watermarked = os.path.join(output_path, f"{video_title}.mkv")
 
         # Step 1: Download video and audio into a temporary merged file
         ydl_opts = {
