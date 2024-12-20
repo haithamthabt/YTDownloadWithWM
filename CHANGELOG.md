@@ -17,10 +17,6 @@
   - In audio stream metadata
   - Custom title for both streams
 
-### TODO
-- make sure of quality that is lossless
-- add progress bar for watermarking
-
 ## [Unreleased]
 
 ### Added
@@ -43,26 +39,3 @@
   - Increased initial window size to 1200x800
   - Integrated playlist view into main window instead of separate window
   - Better space utilization for playlist content
-
-### TODO
-- Playlist Improvements:
-  - Add custom naming for playlist folders
-  - Add location selection for playlist downloads
-  - Improve progress tracking for individual videos
-  - Add completion notifications
-  - Add option to cancel downloads
-  - Show estimated time remaining
-  - Show download speed
-  - Add option to select all/none for watermarks
-  - Remember last used settings
-  - Add error recovery for failed downloads
-- make sure of quality that is lossless
-- add progress bar for watermarking
-- Progress tracking for multiple video downloads
-
-#### Suggestions for Improvement
-- Code Organization: Consider breaking down larger functions into smaller, more manageable ones. For example, the download_playlist_videos function could be split into separate functions for downloading individual videos and updating the UI.
-- Error Handling: While there is some error handling in place, you might want to add more specific error messages or logging to help diagnose issues during downloads.
-- Input Validation: Ensure that the input URL is validated more thoroughly before attempting to fetch formats. This could include checking for valid URL formats.
-- Documentation: Adding docstrings to all functions would improve code readability and provide context for future developers (or yourself) revisiting the code.
-- User Feedback: Consider providing more feedback to the user during long operations, such as displaying a loading spinner or disabling buttons while processing.
