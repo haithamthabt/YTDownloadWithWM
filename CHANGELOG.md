@@ -1,5 +1,10 @@
 # Changelog
 
+## [2.0.1] - 2024-12-20
+### Added
+- Implemented threading for the `fetch_best_formats_button` to improve GUI responsiveness.
+- Ensured that the fetching operation runs in a separate thread without altering existing functionality.
+
 ## [2.0.0] - 2024-12-20
 ### Major UI Enhancements and Playlist Integration
 - Increased initial window size for better usability.

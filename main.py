@@ -281,7 +281,6 @@ def check_url():
         # Clear previous format selection
         for widget in format_frame.winfo_children():
             widget.destroy()
-        label.config(text="Processing URL...")
         
         # Process URL (could be video or playlist)
         result = process_url(url, "downloads", watermark=watermark_enabled.get())  # Pass watermark state
@@ -317,6 +316,19 @@ def check_url():
     except Exception as e:
         label.config(text=f"Error: {str(e)}")
 
+def threaded_check_url():
+    # Disable the button
+    fetch_best_formats_button.config(state=tk.DISABLED)
+    label.config(text="Processing URL...")
+
+    # Run the existing check_url function
+    check_url()
+
+    # Re-enable the button and update the label after fetching
+    fetch_best_formats_button.config(state=tk.NORMAL)
+    label.config(text="Formats fetched successfully!")
+
+
 # Create the Tkinter app window
 root = tk.Tk()
 root.title("YouTube Download and Watermark Tool")
@@ -335,7 +347,7 @@ input_url.insert(0, "https://www.youtube.com/playlist?list=PLHc88y3ww4WCWc4kcXdQ
 input_url.pack(pady=5)
 
 # Add buttons for fetching formats and downloading
-fetch_best_formats_button = tk.Button(root, text="Fetch Best Video Formats", command=check_url)
+fetch_best_formats_button = tk.Button(root, text="Fetch Best Video Formats", command=lambda: threading.Thread(target=threaded_check_url, daemon=True).start())
 fetch_best_formats_button.pack(pady=10)
 
 # Add watermark checkbox

@@ -367,3 +367,10 @@ def expand_window_for_playlist(playlist_info):
 - Optimize memory usage
   - Clean up temporary files
   - Manage large playlists efficiently
+
+## Threading Implementation for Fetching
+
+- Implemented threading for the `fetch_best_formats_button` to ensure the GUI remains responsive during the fetching process.
+- Created a new function `threaded_check_url` to wrap the existing `check_url` function.
+- Updated the button command to start the fetching operation in a separate thread using `threading.Thread`.
+- Ensured that the existing functionality remains intact without affecting the current working state of the application.
