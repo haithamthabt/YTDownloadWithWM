@@ -1,6 +1,11 @@
 # Changelog
 
-## [2.0.3] - 2024-12-20
+## [2.0.5] - 2024-12-20
+### Added
+- Added version display at the bottom of the window
+- Organized global variables and constants section
+
+## [2.0.4] - 2024-12-20
 ### Added
 - Implemented universal loading animation system with customizable text
 - Added visual feedback during URL processing with animated dots
@@ -9,6 +14,11 @@
 - Improved thread safety in loading animations
 ### Fixed
 - Fixed loading animation not stopping cleanly after operations complete
+
+## [2.0.3] - 2024-12-20
+### Added
+- Implemented threading for the `fetch_best_formats_button` to improve GUI responsiveness.
+- Ensured that the fetching operation runs in a separate thread without altering existing functionality.
 
 ## [2.0.2] - 2024-12-20
 ### Added

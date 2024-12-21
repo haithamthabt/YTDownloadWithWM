@@ -5,13 +5,16 @@ from downloader import extract_video_info, get_best_audio_format, get_best_video
 import os
 import time
 
-# Global variables for storing video format information
-selected_format = None  # To store the selected video format
-best_audio = None  # To store the best audio format
+# Global variables and constants
+VERSION = "v2.0.3"
 filtered_video_formats = None  # To store filtered video formats
 format_vars = {}  # To store format variables for playlist videos
 watermark_vars = {}  # To store watermark variables for playlist videos
 stop_animation = threading.Event()  # Event to control loading animation
+
+# Global variables for storing video format information
+selected_format = None  # To store the selected video format
+best_audio = None  # To store the best audio format
 
 def fetch_best_formats():
     """
@@ -383,8 +386,12 @@ format_frame.pack(pady=10)
 progress_bar = ttk.Progressbar(root, orient="horizontal", length=400, mode="determinate")
 progress_bar.pack(pady=10)
 
+# Add version label next to copyright
+version_label = tk.Label(root, text=VERSION, font=("Arial", 10), fg="gray")
+version_label.pack(side=tk.BOTTOM, pady=5)
+
 # Add a copyright label
-copyright_label = tk.Label(root, text=" 2024 Limitless Media", font=("Arial", 10), fg="gray")
+copyright_label = tk.Label(root, text=" 2024 Limitless Media - Magid", font=("Arial", 10), fg="gray")
 copyright_label.pack(side=tk.BOTTOM, pady=5)
 
 # Run the Tkinter main loop
