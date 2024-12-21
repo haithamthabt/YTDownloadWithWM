@@ -158,7 +158,6 @@ def is_encoder_available(encoder):
         return False
 
 def select_video_codec(prefer_cpu=False):
-    prefer_cpu = True
     if prefer_cpu:
         return 'libx264'  # Force CPU processing
 
