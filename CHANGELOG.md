@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.0.3] - 2024-12-20
+### Added
+- Implemented universal loading animation system with customizable text
+- Added visual feedback during URL processing with animated dots
+### Changed
+- Replaced global boolean flag with threading.Event for better animation control
+- Improved thread safety in loading animations
+### Fixed
+- Fixed loading animation not stopping cleanly after operations complete
+
+## [2.0.2] - 2024-12-20
+### Added
+- Implemented threading for the `fetch_best_formats_button` to improve GUI responsiveness.
+- Ensured that the fetching operation runs in a separate thread without altering existing functionality.
+
 ## [2.0.1] - 2024-12-20
 ### Added
 - Implemented threading for the `fetch_best_formats_button` to improve GUI responsiveness.

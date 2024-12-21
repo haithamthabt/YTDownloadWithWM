@@ -368,6 +368,21 @@ def expand_window_for_playlist(playlist_info):
   - Clean up temporary files
   - Manage large playlists efficiently
 
+## Loading Animation Implementation
+
+### Animation Control Using Threading Event
+- Implemented a universal loading animation system using `threading.Event()` for better thread control and synchronization.
+- Created reusable animation functions that can be used throughout the application:
+  - `animate_loading(label, animated_text)`: Handles the dot animation with customizable text
+  - `stop_animating_loading()`: Safely stops the animation using thread event
+- The animation system provides visual feedback during long-running operations like URL processing.
+
+### Key Features
+- **Thread Safety**: Uses `threading.Event()` instead of global boolean flags for reliable thread control
+- **Customizable Messages**: Animation text can be customized for different loading scenarios
+- **Clean Termination**: Animation stops cleanly without leftover states
+- **Universal Usage**: Can be reused for any loading operation in the application
+
 ## Threading Implementation for Fetching
 
 - Implemented threading for the `fetch_best_formats_button` to ensure the GUI remains responsive during the fetching process.

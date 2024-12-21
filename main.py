@@ -11,6 +11,7 @@ best_audio = None  # To store the best audio format
 filtered_video_formats = None  # To store filtered video formats
 format_vars = {}  # To store format variables for playlist videos
 watermark_vars = {}  # To store watermark variables for playlist videos
+stop_animation = threading.Event()  # Event to control loading animation
 
 def fetch_best_formats():
     """
@@ -316,18 +317,37 @@ def check_url():
     except Exception as e:
         label.config(text=f"Error: {str(e)}")
 
+def animate_loading(label, animated_text):
+    """Animate the loading dots."""
+    while not stop_animation.is_set():
+        for dots in ['', '.', '..', '...']:
+            if stop_animation.is_set():
+                break
+            label.config(text=animated_text + dots)
+            time.sleep(0.5)
+
+def stop_animating_loading():
+    """Stop the loading animation."""
+    stop_animation.set()
+
 def threaded_check_url():
-    # Disable the button
-    fetch_best_formats_button.config(state=tk.DISABLED)
-    label.config(text="Processing URL...")
+    try:
+        # Reset the stop event and disable button
+        stop_animation.clear()
+        fetch_best_formats_button.config(state=tk.DISABLED)
+        
+        # Start loading animation in a separate thread
+        animation_thread = threading.Thread(target=animate_loading, args=(label, "Processing URL"), daemon=True)
+        animation_thread.start()
 
-    # Run the existing check_url function
-    check_url()
+        # Run the existing check_url function
+        check_url()
 
-    # Re-enable the button and update the label after fetching
-    fetch_best_formats_button.config(state=tk.NORMAL)
-    label.config(text="Formats fetched successfully!")
-
+    finally:
+        # Stop the animation and update UI
+        stop_animating_loading()
+        label.config(text="Formats fetched successfully!")
+        fetch_best_formats_button.config(state=tk.NORMAL)
 
 # Create the Tkinter app window
 root = tk.Tk()
