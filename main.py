@@ -16,32 +16,39 @@ stop_animation = threading.Event()  # Event to control loading animation
 selected_format = None  # To store the selected video format
 best_audio = None  # To store the best audio format
 
-def fetch_best_formats():
-    """
-    Fetches the best audio format and video options for the given YouTube URL.
-    Displays the video options in a dropdown for user selection.
-    """
-    global best_audio, filtered_video_formats, selected_format
-    url = input_url.get()
+def validate_url(url):
     if not url:
-        label.config(text="⚠️ Please enter a valid YouTube URL.")
-        return
+        raise ValueError("Please enter a valid YouTube URL.")
 
-    # Fetch formats
+
+def extract_formats(url):
     formats = extract_video_info(url)
     if not formats:
-        label.config(text="❌ Failed to fetch formats.")
-        return
+        raise RuntimeError("Failed to fetch formats.")
+    return formats
 
-    # Get best audio and video
+
+def select_best_formats(formats):
     best_audio = get_best_audio_format(formats)
     best_video = get_best_video_format(formats)
+    return best_audio, best_video
 
-    # Filter matching video formats
-    filtered_video_formats = filter_matching_video_formats(formats, best_video)
 
-    if not filtered_video_formats:
-        label.config(text="❌ No suitable video formats found.")
+def filter_formats(formats, best_video):
+    return filter_matching_video_formats(formats, best_video)
+
+
+def fetch_best_formats():
+    global best_audio, filtered_video_formats, selected_format
+    url = input_url.get()
+    
+    try:
+        validate_url(url)
+        formats = extract_formats(url)
+        best_audio, best_video = select_best_formats(formats)
+        filtered_video_formats = filter_formats(formats, best_video)
+    except Exception as e:
+        label.config(text=f"⚠️ {str(e)}")
         return
 
     # Clear previous dropdown menu
