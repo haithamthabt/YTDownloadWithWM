@@ -142,6 +142,45 @@ def get_video_formats(video_url):
     except Exception as e:
         raise Exception(f"Error extracting video formats: {str(e)}")
 
+def is_encoder_available(encoder):
+    try:
+        result = subprocess.run(['ffmpeg', '-encoders'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        encoders_list = result.stdout.decode('utf-8')
+        
+        # Print the list of available encoders
+        #print(encoders_list)
+        
+        # Pause execution until the user presses Enter
+        #input("Press Enter to continue...")
+        
+        return encoder in encoders_list
+    except FileNotFoundError:
+        return False
+
+def select_video_codec(prefer_cpu=False):
+    prefer_cpu = True
+    if prefer_cpu:
+        return 'libx264'  # Force CPU processing
+
+    # Check for NVIDIA GPU
+    if is_encoder_available('h264_nvenc'):
+        return 'h264_nvenc'  # Use NVIDIA GPU
+
+    # Check for Intel GPU
+    if is_encoder_available('h264_qsv'):
+        return 'h264_qsv'  # Use Intel GPU
+
+    # Check for AMD GPU
+    if is_encoder_available('h264_amf'):
+        return 'h264_amf'  # Use AMD GPU
+
+    # Check for VideoToolbox
+    if is_encoder_available('h264_videotoolbox'):
+        return 'h264_videotoolbox'  # Use VideoToolbox for H.264
+
+    # Default to CPU if no GPU is available
+    return 'libx264'
+
 def download_video(video_url, video_format_id, audio_format_id, output_path, watermark=True, watermark_text="LIMITLESS MEDIA", progress_callback=None):
     """
     Downloads the selected video and audio formats, merges them, applies a watermark if enabled,
@@ -168,7 +207,9 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
             audio_format = next(f for f in info['formats'] if f['format_id'] == audio_format_id)
 
         video_title = info.get('title', 'downloaded_video').replace("/", "_")  # Prevent invalid filename characters
-        video_codec = video_format.get('vcodec', 'libx264')
+        video_codec = select_video_codec(prefer_cpu=False)
+        print(f'Selected video codec: {video_codec}')
+        print("-------------------------------------------------")
         video_bitrate = video_format.get('tbr', 0)
         audio_bitrate = audio_format.get('abr', 0)  # Get audio bitrate for metadata
 

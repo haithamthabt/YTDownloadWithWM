@@ -29,3 +29,4 @@
 - [ ] Enhance the user experience for format selection.
 - [ ] Progress tracking for multiple video downloads.
 - [ ] Provide more feedback during long operations, such as displaying a loading spinner or disabling buttons while processing.
+- [ ] Enhance watermarking speed by optimizing encoding settings and utilizing GPU acceleration where available.

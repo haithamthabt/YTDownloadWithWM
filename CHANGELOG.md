@@ -1,5 +1,11 @@
 # Changelog
 
+
+## [2.0.6] - 2024-12-21
+### Added
+- Added support for hardware-accelerated gpu encoding
+- Moved Version variable to a separate file
+
 ## [2.0.5] - 2024-12-20
 ### Added
 - Added version display at the bottom of the window

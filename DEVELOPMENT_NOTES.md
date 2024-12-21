@@ -368,6 +368,14 @@ def expand_window_for_playlist(playlist_info):
   - Clean up temporary files
   - Manage large playlists efficiently
 
+## Recent Changes
+
+- Added functionality to select video codec based on available hardware encoders (NVIDIA, Intel, AMD, and VideoToolbox).
+- Implemented watermarking functionality with options for hardware acceleration using VideoToolbox.
+- Enhanced the overall structure and readability of the code.
+- Added threading for fetching best formats to improve responsiveness.
+- Implemented a universal loading animation system using threading.Event() for better thread control and synchronization.
+
 ## Loading Animation Implementation
 
 ### Animation Control Using Threading Event

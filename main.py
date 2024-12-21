@@ -4,9 +4,9 @@ import threading
 from downloader import extract_video_info, get_best_audio_format, get_best_video_format, filter_matching_video_formats, download_video, process_url
 import os
 import time
+from version_variable import VERSION
 
 # Global variables and constants
-VERSION = "v2.0.3"
 filtered_video_formats = None  # To store filtered video formats
 format_vars = {}  # To store format variables for playlist videos
 watermark_vars = {}  # To store watermark variables for playlist videos
