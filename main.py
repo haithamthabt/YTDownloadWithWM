@@ -296,34 +296,8 @@ def check_url():
         # Process URL (could be video or playlist)
         result = process_url(url, "downloads", watermark=watermark_enabled.get())  # Pass watermark state
         
-        if result['is_playlist']:
-            # Show playlist window
-            expand_window_for_playlist(result)
-        else:
-            # Single video - use existing format display
-            video = result['videos'][0]
-            if video['status'] == 'ready' and video['formats']:
-                # Initialize selected_format if not already set
-                global selected_format
-                if selected_format is None:
-                    selected_format = tk.StringVar()
-
-                # Populate dropdown with matching video formats
-                format_id_map = {
-                    f"{f['format_note']} => ID: {f['format_id']}, Res: {f.get('resolution', 'N/A')}, FPS: {f.get('fps', 'N/A')}, Size: {f.get('filesize', 0) / 1024 / 1024:.2f} MB": f['format_id']
-                    for f in video['formats']
-                }
-
-                selected_format.set(list(format_id_map.keys())[0])  # Default to the first format
-                dropdown = tk.OptionMenu(format_frame, selected_format, *format_id_map.keys())
-                dropdown.pack()
-
-                # Attach the format ID map to the dropdown for later retrieval
-                dropdown.format_id_map = format_id_map
-                label.config(text="Matching video formats fetched! Select one and click 'Download Video'.")
-            else:
-                label.config(text=f"Error: {video['status']}")
-    
+        expand_window_for_playlist(result)
+        
     except Exception as e:
         label.config(text=f"Error: {str(e)}")
 
