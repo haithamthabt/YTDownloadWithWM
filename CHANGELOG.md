@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.8] - 2024-12-22
+### Changed
+- Updated the `download_video` function to merge video and audio without watermarking using `YoutubeDL`.
+- Ensured that FFmpeg is utilized only during the watermarking process, not during standard downloads.
+### Fixed
+- Improved error handling during the merging process to ensure temporary files are managed correctly.
+
 ## [2.0.7] - 2024-12-21
 ### Added
 - Updated the header title to differentiate between a playlist and a single video.
