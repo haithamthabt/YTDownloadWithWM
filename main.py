@@ -171,7 +171,7 @@ def download_playlist_videos():
                 label.config(text=f"Error downloading video {i}: {str(e)}")
                 continue
         
-        label.config(text="All videos downloaded!")
+        label.config(text="✅ All videos downloaded!", foreground='green', font=('Helvetica', 12, 'bold'))
         progress_bar["value"] = 0
     
     # Reset progress bar
@@ -216,7 +216,7 @@ def expand_window_for_playlist(playlist_info):
     canvas.pack(side="left", fill="both", expand=True)
     
     # Add header
-    header = ttk.Label(scrollable_frame, text=f"Playlist Videos (Total: {len(playlist_info['videos'])})", font=('Helvetica', 12, 'bold'))
+    header = ttk.Label(scrollable_frame, text=(f"Playlist Videos (Total: {len(playlist_info['videos'])})" if playlist_info['is_playlist'] else "Video Information"), font=('Helvetica', 12, 'bold'))
     header.pack(pady=10)
     
     # Dictionary to store format variables for each video

@@ -2,8 +2,8 @@
 
 ## [2.0.7] - 2024-12-21
 ### Added
+- Updated the header title to differentiate between a playlist and a single video.
 - Utilized expand window for playlist function for single video download 
-
 
 ## [2.0.6] - 2024-12-21
 ### Added
