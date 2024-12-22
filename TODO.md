@@ -1,7 +1,7 @@
 # TODO List
 
 ## Bugs/Issues to Fix
-- [ ] Fix single viddeo download
+- [ ] Make sure downloaded videos metadata are correct and not just set to source metadata
 - [ ] Fix any issues with video download progress tracking.
 
 ## Features to Add
