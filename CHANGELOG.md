@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.0.0] - 2024-12-23
+### Changed
+- Added functionality for users to select which videos to download using checkboxes in the playlist view.
+- Updated notification logic to accurately reflect the number of selected videos downloaded and handle cases where no videos were selected.
+
 ## [2.0.9] - 2024-12-23
 ### Changed
 - Improved error handling in the video download process.

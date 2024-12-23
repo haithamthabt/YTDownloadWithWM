@@ -10,6 +10,7 @@ from version_variable import VERSION
 filtered_video_formats = None  # To store filtered video formats
 format_vars = {}  # To store format variables for playlist videos
 watermark_vars = {}  # To store watermark variables for playlist videos
+video_selected_vars = {}  # To store video selection variables for playlist videos
 stop_animation = threading.Event()  # Event to control loading animation
 
 # Global variables for storing video format information
@@ -128,6 +129,7 @@ def download_playlist_videos():
     print("Starting playlist download...")
     print(f"Format vars: {format_vars}")
     print(f"Watermark vars: {watermark_vars}")
+    print(f"Video selected vars: {video_selected_vars}")
     
     def threaded_playlist_download():
         total_videos = len(format_vars)
@@ -146,6 +148,9 @@ def download_playlist_videos():
         success_count = 0  # Initialize success counter
         
         for i, (video_url, format_var) in enumerate(format_vars.items(), 1):
+            if not video_selected_vars[video_url].get():
+                continue  # Skip if video is not selected
+            
             selected_format_str = format_var['format_var'].get()
             # Extract format ID from the string (format is "format_note => ID: format_id, Res: resolution, FPS: fps, Size: filesize MB")
             format_id = selected_format_str.split("ID: ")[1].split(",")[0].strip() if "ID: " in selected_format_str else selected_format_str
@@ -176,10 +181,12 @@ def download_playlist_videos():
                 continue
         
         # Update final message based on success count
-        if success_count == total_videos:
-            label.config(text="✅ All videos downloaded! ✅", foreground='green', font=('Helvetica', 12, 'bold'))
+        if success_count == 0:
+            label.config(text="⚠️ No videos were selected for download.")
+        elif success_count == len([v for v in video_selected_vars.values() if v.get()]):
+            label.config(text="✅ All selected videos downloaded! ✅", foreground='green', font=('Helvetica', 12, 'bold'))
         else:
-            label.config(text=f"❌ Downloaded {success_count} out of {total_videos} videos. Try downloading later. ❌ ")
+            label.config(text=f"❌ Downloaded {success_count} out of {len([v for v in video_selected_vars.values() if v.get()])} selected videos. Try downloading later. ❌ ")
         progress_bar["value"] = 0
     
     # Reset progress bar
@@ -192,10 +199,11 @@ def expand_window_for_playlist(playlist_info):
     """
     Show playlist information and format selection in the main window
     """
-    global format_vars, watermark_vars
+    global format_vars, watermark_vars, video_selected_vars
     # Clear previous variables
     format_vars.clear()
     watermark_vars.clear()
+    video_selected_vars.clear()
     
     # Clear any existing playlist frame
     for widget in root.winfo_children():
@@ -230,11 +238,20 @@ def expand_window_for_playlist(playlist_info):
     # Dictionary to store format variables for each video
     format_vars = {}
     watermark_vars = {}  # Add dictionary for watermark variables
+    video_selected_vars = {}  # Add dictionary for video selection variables
     
     # Add video entries
     for i, video in enumerate(playlist_info['videos'], 1):
         video_frame = ttk.LabelFrame(scrollable_frame, text=f"Video {i}")
         video_frame.pack(fill="x", padx=5, pady=5, ipadx=5, ipady=5)
+        
+        # Checkbox for video selection
+        video_selected = tk.BooleanVar(value=True)  # Default to checked
+        checkbox = ttk.Checkbutton(video_frame, text="Select for Download", variable=video_selected)
+        checkbox.pack(anchor="w")
+        
+        # Store the video selection variable in a dictionary
+        video_selected_vars[video['url']] = video_selected
         
         # Video title
         title_label = ttk.Label(video_frame, text=f"Title: {video['title']}", wraplength=700)
