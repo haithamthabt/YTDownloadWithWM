@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.9] - 2024-12-23
+### Changed
+- Improved error handling in the video download process.
+- Updated download function to return boolean values for success or failure.
+- Adjusted notifications to accurately reflect download status.
+
 ## [2.0.8] - 2024-12-22
 ### Changed
 - Watermarking using ultrafast preset

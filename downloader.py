@@ -258,18 +258,17 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
                 if os.path.exists(merged_input):
                     os.remove(merged_input)
 
-                return f" Video downloaded and watermarked: {output_watermarked}"
-
+                return True  # Video downloaded successfully
             except Exception as e:
-                return f" Error during watermarking: {e}. Temporary file saved as {merged_input}"
+                return False  # Return False on error during watermarking
 
         # If watermarking is disabled, rename the temporary file to the final output
         final_output = f"{output_path}/{video_title}.mkv"
         os.rename(merged_input, final_output)
-        return f" Video downloaded successfully: {final_output}"
+        return True  # Video downloaded successfully
 
     except Exception as e:
-        return f" Error: {e}"
+        return False  # Return False on any error
 
 def process_url(url, output_path, watermark=True, watermark_text="LIMITLESS MEDIA", progress_callback=None):
     """

@@ -143,6 +143,8 @@ def download_playlist_videos():
         playlist_dir = os.path.join(download_path, "Videos")
         os.makedirs(playlist_dir, exist_ok=True)
         
+        success_count = 0  # Initialize success counter
+        
         for i, (video_url, format_var) in enumerate(format_vars.items(), 1):
             selected_format_str = format_var['format_var'].get()
             # Extract format ID from the string (format is "format_note => ID: format_id, Res: resolution, FPS: fps, Size: filesize MB")
@@ -160,18 +162,24 @@ def download_playlist_videos():
             
             try:
                 # Use existing download function's core logic
-                download_video(video_url, format_id, audio_format_id, playlist_dir, watermark)
+                download_success = download_video(video_url, format_id, audio_format_id, playlist_dir, watermark)
+                
+                if download_success:
+                    success_count += 1  # Increment success count if download was successful
                 
                 # Update progress for this video
                 progress_bar["value"] = (i / total_videos) * 100
                 root.update_idletasks()
-                
             except Exception as e:
                 print(f"Error downloading video {i}: {str(e)}")
                 label.config(text=f"Error downloading video {i}: {str(e)}")
                 continue
         
-        label.config(text="✅ All videos downloaded!", foreground='green', font=('Helvetica', 12, 'bold'))
+        # Update final message based on success count
+        if success_count == total_videos:
+            label.config(text="✅ All videos downloaded! ✅", foreground='green', font=('Helvetica', 12, 'bold'))
+        else:
+            label.config(text=f"❌ Downloaded {success_count} out of {total_videos} videos. Try downloading later. ❌ ")
         progress_bar["value"] = 0
     
     # Reset progress bar
