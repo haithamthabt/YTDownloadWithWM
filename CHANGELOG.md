@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1] - 2024-01-30
+### Changed
+- Changed download from mkv to mp4
+- removed presets cuz it makes video pixelated
+- Adjusted watermark text movement speed for better performance:
+
+
 ## [3.0.0] - 2024-12-23
 ### Changed
 - Added functionality for users to select which videos to download using checkboxes in the playlist view.

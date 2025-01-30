@@ -216,14 +216,13 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
         # File paths
         output_filename = os.path.basename(output_path)
         output_dir = os.path.dirname(output_path)
-        merged_input = os.path.join(output_dir, f"{video_title}_temp.mkv")  # Temporary merged video
-        output_watermarked = os.path.join(output_path, f"{video_title}.mkv")
+        merged_input = os.path.join(output_dir, f"{video_title}_temp.mp4")  # Temporary merged video
+        output_watermarked = os.path.join(output_path, f"{video_title}.mp4")
 
         # Step 1: Download video and audio into a temporary merged file
         ydl_opts = {
             'format': f"{video_format_id}+{audio_format_id}",
             'outtmpl': merged_input,
-            'merge_output_format': 'mkv',
             'progress_hooks': [progress_hook],  # Attach the progress hook
             'postprocessor_args': [
                 # Add metadata during merge
@@ -263,7 +262,7 @@ def download_video(video_url, video_format_id, audio_format_id, output_path, wat
                 return False  # Return False on error during watermarking
 
         # If watermarking is disabled, rename the temporary file to the final output
-        final_output = f"{output_path}/{video_title}.mkv"
+        final_output = f"{output_path}/{video_title}.mp4"
         os.rename(merged_input, final_output)
         return True  # Video downloaded successfully
 

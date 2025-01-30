@@ -28,15 +28,13 @@ def add_moving_watermark(input_file, output_file, watermark_text, video_codec="l
             "-i", input_file,
             # Watermark filter with moving text
             "-vf", f"drawtext=text='{watermark_text}':font=Verdana:fontcolor=white:fontsize=24:"
-                  f"x='mod(t*10,w)':y='mod(t*5,h)'",
+                  f"x='mod(t*0.5,w)':y='mod(t*0.2,h)'",
             # Video encoding settings
             "-c:v", reencode_codec,
             *bitrate_option,
             "-g", "60",              # Keyframe interval (1 sec at 60 FPS)
             "-bufsize", "10M",       # Buffer size for rate control
             "-maxrate", f"{video_bitrate}k" if video_bitrate else "1M",
-            "-preset", "ultrafast",  # Set to ultrafast for maximum encoding speed
-            "-movflags", "+faststart",  # Enable streaming
             "-c:a", "copy",          # Copy audio stream without re-encoding
             "-map_metadata", "0",    # Copy global metadata
             "-map_chapters", "0",    # Copy chapters
